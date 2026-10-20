@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SDKG Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2322d3ee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3Cpath d='m9 12 2 2 4-4'/%3E%3C/svg%3E">
+</head>
+<body>
+  <canvas id="bg"></canvas>
+  <div class="aurora"><i></i><i></i><i></i></div>
+  <div class="scanlines"></div>
+
+  <!-- Boot sequence -->
+  <div id="boot">
+    <div class="boot-inner">
+      <svg class="boot-logo" viewBox="0 0 24 24" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+        <path class="draw" d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+        <path class="draw d2" d="m9 12 2 2 4-4"/>
+      </svg>
+      <h1 class="boot-title" data-text="SDKG">SDKG</h1>
+      <p class="boot-sub">Secure Dynamic Knowledge Graph · Command Center</p>
+      <pre id="boot-log"></pre>
+      <div class="boot-bar"><i id="boot-fill"></i></div>
+      <p class="boot-hint">click to skip</p>
+    </div>
+  </div>
+
+  <div id="app">
+    <header id="top">
+      <div class="brand">
+        <div class="logo" id="logo"></div>
+        <div>
+          <h1>SDKG <span>Command Center</span></h1>
+          <p>Secure Dynamic Knowledge Graph for RAG &amp; autonomous agents</p>
+        </div>
+      </div>
+      <div class="viewers-wrap">
+        <span class="viewers-label">Viewing as</span>
+        <div id="viewers" class="viewers"></div>
+      </div>
+      <div class="hdr-right">
+        <div id="integrity" class="integrity"></div>
+        <button id="btn-runall" class="btn btn-danger"></button>
+        <button id="btn-sound" class="icon-btn" title="Sound"></button>
+        <button id="btn-reset" class="icon-btn" title="Reset world"></button>
+      </div>
+    </header>
+
+    <main id="main">
+      <section id="stage">
+        <div id="graph"></div>
+        <div id="hud-stats" class="hud"></div>
+        <div id="viewer-banner"></div>
+        <div id="legend" class="hud"></div>
+        <div id="probe-list"></div>
+        <div id="inspector" class="glass" hidden></div>
+        <div id="narration"><div class="nar-meta" id="nar-meta"></div><div class="nar-text" id="nar-text"></div></div>
+        <div id="cine"></div>
+        <div id="vignette"></div>
+        <div id="toasts"></div>
+      </section>
+
+      <aside id="panel" class="glass">
+        <nav id="tabs"></nav>
+        <div id="tab-body"></div>
+      </aside>
+    </main>
+
+    <footer id="pipeline" class="glass">
+      <div class="pipe-in" id="pipe-in"></div>
+      <div class="pipe-track" id="pipe-track">
+        <div class="pipe-line"><i id="pipe-fill"></i></div>
+        <div class="gates" id="gates"></div>
+        <div class="packet" id="packet"><i></i></div>
+      </div>
+      <div class="pipe-out" id="pipe-out"></div>
+    </footer>
+  </div>
+
+  <script src="/static/vendor/force-graph.min.js"></script>
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>

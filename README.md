@@ -34,23 +34,24 @@
 
 1. [Why this project exists](#why)
 2. [Quick start](#quick-start)
-3. [Big picture](#big-picture)
-4. [The secure update pipeline (writes)](#pipeline)
-5. [Life of a fact](#lifecycle)
-6. [Access control: RBAC + MLS + ABAC](#access-control)
-7. [Trust scoring](#trust)
-8. [Validation and prompt-injection defence](#validation)
-9. [Approvals and separation of duties](#approvals)
-10. [Tamper-evident audit ledger](#ledger)
-11. [Secure retrieval for RAG and agents](#retrieval)
-12. [Demo domain: cyber threat intelligence](#domain)
-13. [Attack scenarios (the demo)](#attacks)
-14. [Threat model (STRIDE)](#threat-model)
-15. [Using the library](#usage)
-16. [Project layout and modules](#layout)
-17. [Test suite](#tests)
-18. [Configuration knobs](#config)
-19. [Known limitations and future work](#future-work)
+3. [Command Center (web UI)](#command-center)
+4. [Big picture](#big-picture)
+5. [The secure update pipeline (writes)](#pipeline)
+6. [Life of a fact](#lifecycle)
+7. [Access control: RBAC + MLS + ABAC](#access-control)
+8. [Trust scoring](#trust)
+9. [Validation and prompt-injection defence](#validation)
+10. [Approvals and separation of duties](#approvals)
+11. [Tamper-evident audit ledger](#ledger)
+12. [Secure retrieval for RAG and agents](#retrieval)
+13. [Demo domain: cyber threat intelligence](#domain)
+14. [Attack scenarios (the demo)](#attacks)
+15. [Threat model (STRIDE)](#threat-model)
+16. [Using the library](#usage)
+17. [Project layout and modules](#layout)
+18. [Test suite](#tests)
+19. [Configuration knobs](#config)
+20. [Known limitations and future work](#future-work)
 
 ---
 
@@ -81,9 +82,10 @@ SDKG puts a **security pipeline in front of every write** and a **policy-aware r
 git clone https://github.com/Prashasthi-18/Secure-Dynamic-Knowledge-Graph.git
 cd Secure-Dynamic-Knowledge-Graph/sdkg
 
-pip install cryptography pytest
+pip install -r requirements.txt
 
-python demo.py          # normal operation + 9 attack scenarios
+python app/server.py    # interactive Command Center UI (opens your browser)
+python demo.py          # terminal demo: normal operation + 9 attack scenarios
 python -m pytest -q     # 20 security tests
 ```
 
@@ -96,6 +98,40 @@ Expected test output:
 ....................                                                     [100%]
 20 passed in 1.17s
 ```
+
+---
+
+<a name="command-center"></a>
+
+## <img src="docs/icons/activity.svg" width="24" height="24" alt=""> Command Center (web UI)
+
+An animated, interactive console that drives the **real** SDKG library. Every action goes through the actual signatures, policy engine, trust model, validator and ledger. The UI only visualises what the pipeline decided.
+
+```bash
+cd sdkg
+pip install -r requirements.txt
+python app/server.py          # opens http://127.0.0.1:5000 (moves to the next free port if 5000 is busy)
+```
+
+<p align="center"><img src="docs/screenshots/command-center.png" alt="SDKG Command Center: live knowledge graph, attack narration and the 7-gate security pipeline" width="100%"></p>
+
+| Area | What you can do |
+|---|---|
+| **Live graph** | Force-directed graph with glowing nodes, trust arcs coloured by security label, particles flowing along edges, orbiting markers for pending facts and hazard rings for quarantined ones. Click any node or edge to inspect its signed provenance. |
+| **Security perimeter** | Every write flies in as a comet. Rejected facts explode on the perimeter; accepted ones land in the graph with a shockwave. |
+| **7-gate pipeline** | A packet travels through Authorize → Authenticate → Validate → Corroborate → Conflicts → Trust → Decide and lights up the gate where it was stopped. |
+| **Attack simulator** | Launch any of the 9 attacks, or run them all as a cinematic demo with narration and a "threat neutralized" stamp after each one. |
+| **Viewing as** | Switch between the observer and each user. Facts the user can't read dissolve away, showing no read-up and need-to-know in action. |
+| **Ingest** | Propose your own nodes and edges, signed by any source, with one-click presets for trusted, poisoned, injected and over-clearance writes. |
+| **Govern** | Approve, reject, accept or discard pending and quarantined facts as any user, and watch separation of duties deny self-approval. |
+| **RAG** | Query as an agent and see the policy-filtered context items, the query budget, the rising high-water mark and the exact prompt the LLM receives. |
+| **Ledger** | A live hash chain of signed blocks. Tamper with storage or rewrite a block to trigger the integrity alarm, then roll back and restore. |
+| **Trust** | Source reputations as Beta(α, β) meters, with key revocation and reinstatement. |
+
+<p align="center"><img src="docs/screenshots/attack-cinematic.png" alt="Attack 04 cinematic title card" width="100%"></p>
+
+> [!TIP]
+> Turn on sound with the speaker button for synthesised blips, alarms and chimes. Press the reset button to restore a fresh world at any time.
 
 ---
 
@@ -806,6 +842,10 @@ Secure-Dynamic-Knowledge-Graph/
 ├── demo.py, graph.py        ← copies of sdkg/demo.py and sdkg/sdkg/graph.py
 └── sdkg/
     ├── demo.py              ← end-to-end demo: build the graph, then attack it
+    ├── requirements.txt
+    ├── app/                 ← Command Center web UI
+    │   ├── server.py        ← Flask JSON API over the real library
+    │   └── static/          ← index.html, style.css, app.js, icons, vendored force-graph
     ├── README.md
     ├── sdkg/                ← the Python package
     │   ├── __init__.py      ← public API exports
