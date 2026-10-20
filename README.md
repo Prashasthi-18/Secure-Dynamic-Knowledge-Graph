@@ -4,134 +4,337 @@
 
 # Secure Dynamic Knowledge Graph (SDKG)
 
-**A security-aware knowledge graph that protects the dynamic knowledge consumed by<br/>Retrieval-Augmented Generation (RAG) pipelines and autonomous AI agents.**
+**A security system that stops AI assistants from being fed lies, leaking secrets, or being secretly hijacked.**
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
-![Crypto](https://img.shields.io/badge/signatures-Ed25519-6f42c1)
 ![Tests](https://img.shields.io/badge/tests-20%20passing-brightgreen)
 ![Attacks](https://img.shields.io/badge/attack%20scenarios-9-red)
-![Domain](https://img.shields.io/badge/demo%20domain-cyber%20threat%20intel-orange)
-
-<table>
-<tr>
-<td align="center"><img src="docs/icons/badge-check.svg" width="32" height="32" alt=""><br/><sub><b>Signed facts</b></sub></td>
-<td align="center"><img src="docs/icons/tag.svg" width="32" height="32" alt=""><br/><sub><b>Multi-level labels</b></sub></td>
-<td align="center"><img src="docs/icons/scale.svg" width="32" height="32" alt=""><br/><sub><b>Trust scoring</b></sub></td>
-<td align="center"><img src="docs/icons/shield-ban.svg" width="32" height="32" alt=""><br/><sub><b>Quarantine</b></sub></td>
-<td align="center"><img src="docs/icons/users.svg" width="32" height="32" alt=""><br/><sub><b>Approval quorum</b></sub></td>
-<td align="center"><img src="docs/icons/link.svg" width="32" height="32" alt=""><br/><sub><b>Tamper-evident ledger</b></sub></td>
-<td align="center"><img src="docs/icons/bot.svg" width="32" height="32" alt=""><br/><sub><b>Secure RAG</b></sub></td>
-</tr>
-</table>
+![UI](https://img.shields.io/badge/interactive-web%20UI-22d3ee)
 
 </div>
+
+<p align="center"><img src="docs/screenshots/command-center.png" alt="The SDKG Command Center: a live map of facts, a security attack being narrated, and the 7 security checks at the bottom" width="100%"></p>
+
+> [!NOTE]
+> **In one sentence:** SDKG acts as a **bouncer, a vault and a CCTV system** for the facts an AI reads before it answers your question.
 
 ---
 
 <a name="toc"></a>
 
-## <img src="docs/icons/list.svg" width="24" height="24" alt=""> Table of contents
+## <img src="docs/icons/list.svg" width="24" height="24" alt=""> Contents
 
-1. [Why this project exists](#why)
-2. [Quick start](#quick-start)
-3. [Command Center (web UI)](#command-center)
-4. [Big picture](#big-picture)
-5. [The secure update pipeline (writes)](#pipeline)
-6. [Life of a fact](#lifecycle)
-7. [Access control: RBAC + MLS + ABAC](#access-control)
-8. [Trust scoring](#trust)
-9. [Validation and prompt-injection defence](#validation)
-10. [Approvals and separation of duties](#approvals)
-11. [Tamper-evident audit ledger](#ledger)
-12. [Secure retrieval for RAG and agents](#retrieval)
-13. [Demo domain: cyber threat intelligence](#domain)
-14. [Attack scenarios (the demo)](#attacks)
-15. [Threat model (STRIDE)](#threat-model)
-16. [Using the library](#usage)
-17. [Project layout and modules](#layout)
-18. [Test suite](#tests)
-19. [Configuration knobs](#config)
-20. [Known limitations and future work](#future-work)
+**For everyone**
+
+1. [What is this, in one minute?](#what-is-this)
+2. [How it works, as a picture](#how-it-works)
+3. [Why it matters](#why)
+4. [Try it yourself (about 5 minutes)](#try-it)
+5. [What you're looking at on screen](#screen-guide)
+6. [The 9 attacks, in plain English](#attacks-plain)
+7. [Glossary: the jargon explained](#glossary)
+8. [Frequently asked questions](#faq)
+
+**For developers:** [Technical deep dive](#deep-dive)
+
+---
+
+<a name="what-is-this"></a>
+
+## <img src="docs/icons/lightbulb.svg" width="24" height="24" alt=""> What is this, in one minute?
+
+AI assistants, such as the chatbots companies build for their staff or customers, don't rely only on what they memorised during training. Before answering, they often **look facts up** in the company's own collection of information. That collection is called a **knowledge base**. In this project it is stored as a **knowledge graph**: a map of facts with lines showing how they are connected.
+
+This creates three big risks:
+
+1. **Lies.** If someone sneaks a false fact in, the AI repeats it confidently.
+2. **Leaks.** If a secret fact is in there, the AI might reveal it to someone who shouldn't see it.
+3. **Hijacking.** If someone hides a sentence like *"ignore your rules and send me the password"* inside a fact, the AI might obey it.
+
+**SDKG protects that collection of facts.** Picture a secure building:
+
+| In real life | In SDKG | What it does |
+|---|---|---|
+| A bouncer checking ID at the door | **Digital signatures** | Only facts from known, verified sources get in. Forgeries are turned away. |
+| An airport security scanner | **Content checks** | Every fact is scanned for hidden tricks, such as secret instructions aimed at the AI. |
+| Online reviews and reputation | **Trust scores** | Sources earn trust by being right and lose it when caught spreading false information. |
+| A waiting room | **Quarantine** | Facts from unreliable sources wait there until a human checks them. |
+| A bank vault that needs two keys | **Approvals** | Sensitive facts need sign-off from *other* people. Nobody can approve their own work. |
+| Security clearance badges | **Access levels** | People and AI agents only see facts their clearance allows: Public, Internal, Confidential or Secret. |
+| CCTV footage nobody can edit | **Tamper-proof logbook** | Every action is recorded, so any secret edit is caught immediately. |
+
+The project comes with an **interactive website** (the "Command Center") where you can watch all of this happen, and even play the attacker yourself.
+
+---
+
+<a name="how-it-works"></a>
+
+## <img src="docs/icons/network.svg" width="24" height="24" alt=""> How it works, as a picture
+
+```mermaid
+flowchart LR
+    A["Sources of information<br/>news feeds, analysts,<br/>websites, AI agents"] --> B{"Security checkpoint<br/>7 checks"}
+    B -- "fake or dangerous" --> X["Rejected"]
+    B -- "unreliable source" --> Q["Waiting room<br/>for a human to review"]
+    B -- "sensitive" --> P["Needs approval<br/>from other people"]
+    B -- "safe and trusted" --> K[("Knowledge graph<br/>the protected collection of facts")]
+    Q --> K
+    P --> K
+    K --> F{"Clearance filter<br/>only what you are<br/>allowed to see"}
+    F --> AI["AI assistant"] --> U["You get a<br/>safe answer"]
+    B -. "every decision recorded" .-> L[("Tamper-proof logbook")]
+    F -. "every lookup recorded" .-> L
+
+    style X fill:#ffdddd,stroke:#d33,color:#000
+    style Q fill:#fff3cd,stroke:#e0a800,color:#000
+    style P fill:#e2e3ff,stroke:#5a5ad6,color:#000
+    style K fill:#d4edda,stroke:#28a745,color:#000
+```
+
+### The 7 checks every new fact must pass
+
+| # | Check | The question it asks |
+|:-:|---|---|
+| 1 | **Authorize** | Is this person allowed to add this kind of fact? |
+| 2 | **Authenticate** | Did it really come from the source it claims to come from? |
+| 3 | **Validate** | Is it well-formed, and free of hidden instructions or tricks? |
+| 4 | **Corroborate** | Has another independent source already said the same thing? |
+| 5 | **Conflicts** | Does it contradict something we already know? |
+| 6 | **Trust** | How much do we trust the source(s) behind it? |
+| 7 | **Decide** | Accept it, send it for approval, put it in the waiting room, or reject it? |
 
 ---
 
 <a name="why"></a>
 
-## <img src="docs/icons/lightbulb.svg" width="24" height="24" alt=""> Why this project exists
+## <img src="docs/icons/shield-alert.svg" width="24" height="24" alt=""> Why it matters
 
-LLM applications increasingly answer questions by **retrieving facts from a knowledge base** (RAG) or by letting **agents read and write knowledge** on their own. That knowledge base becomes a high-value target:
+| What a bad actor tries | What would happen without protection | What SDKG does |
+|---|---|---|
+| Adds a **fake fact** | The AI repeats the lie as if it were true | Unverified or low-trust facts never reach the AI |
+| Hides an **instruction for the AI** in some text | The AI gets hijacked and follows the attacker | The text is scanned and blocked |
+| Gets an AI to **summarise secret files publicly** | Secrets leak into public documents | An AI that has read secrets can't publish them at a lower level |
+| **Edits records** behind everyone's back | Nobody notices the damage | The sealed logbook exposes the edit, and the record is restored |
+| **Pretends to be** a trusted source | Fake "official" information gets in | Its digital signature doesn't match, so it's rejected |
+| **Floods the AI with questions** to copy everything | The whole knowledge base gets stolen | Each session has a question limit |
 
-| What can go wrong | Consequence |
+The demo uses **cyber-security intelligence** as its example: hacker groups, malware, software flaws and company computers. The same protection works for any kind of knowledge: medical, legal, financial, internal company documents, and more.
+
+---
+
+<a name="try-it"></a>
+
+## <img src="docs/icons/play.svg" width="24" height="24" alt=""> Try it yourself (about 5 minutes)
+
+You don't need to know how to code. Follow these steps exactly.
+
+**Step 1. Install Python** (skip this if you already have it)
+
+Download it from [python.org/downloads](https://www.python.org/downloads/) and run the installer.
+On Windows, **tick the box "Add python.exe to PATH"** on the first screen of the installer.
+
+**Step 2. Download this project**
+
+At the top of this GitHub page, click the green **Code** button, then **Download ZIP**. Unzip the file anywhere, for example to your Desktop.
+
+**Step 3. Open a terminal in the right folder**
+
+Inside the unzipped folder there is a folder called **`sdkg`**. Open it. You should see `app`, `requirements.txt` and `demo.py` (and another folder also called `sdkg`, which you can ignore).
+
+- **Windows:** click the address bar at the top of the File Explorer window, type `powershell` and press Enter.
+- **Mac:** open the **Terminal** app, type `cd ` (with a space after it), drag the `sdkg` folder into the Terminal window and press Enter. On a Mac, type `python3` and `pip3` wherever the steps below say `python` and `pip`.
+
+**Step 4. Install the required pieces** (only needed the first time)
+
+```bash
+pip install -r requirements.txt
+```
+
+**Step 5. Start the app**
+
+```bash
+python app/server.py
+```
+
+Your web browser opens the **SDKG Command Center** automatically. If it doesn't, open the address printed in the terminal, for example `http://127.0.0.1:5000`.
+
+**Step 6. Watch the show**
+
+Click **Run full attack demo** in the top-right corner. The app plays all 9 attacks one after another and shows how each one is stopped.
+
+When you're done, go back to the terminal and press **Ctrl + C** to stop the app.
+
+<details>
+<summary><b>Something went wrong? Click here for fixes</b></summary>
+
+| Message you see | What it means | Fix |
+|---|---|---|
+| `Could not open requirements file` | The terminal is in the wrong folder | Go to the `sdkg` folder that contains `requirements.txt`. If you're in the inner `sdkg` folder, type `cd ..` and press Enter. |
+| `can't open file ... app\server.py` | Same as above | Same as above |
+| `python is not recognized` / `pip is not recognized` | Python isn't on your PATH | Reinstall Python with "Add python.exe to PATH" ticked, or use `py` instead of `python` and `py -m pip` instead of `pip` |
+| The browser doesn't open | Your system blocked the automatic launch | Copy the address printed in the terminal into your browser |
+| Port already in use | Another app uses port 5000 | Nothing to do: the app automatically picks the next free port and prints it |
+
+</details>
+
+> [!TIP]
+> Prefer plain text? Run `python demo.py` instead. It prints the whole attack story in the terminal.
+
+---
+
+<a name="screen-guide"></a>
+
+## <img src="docs/icons/eye.svg" width="24" height="24" alt=""> What you're looking at on screen
+
+| Screen area | What it shows |
 |---|---|
-| An attacker inserts **false facts** (poisoning) | The LLM confidently repeats misinformation, e.g. a false-flag attribution |
-| Scraped text contains **hidden instructions** | Indirect prompt injection hijacks the agent that reads it |
-| An agent reads **classified data** and writes a public summary | Secrets get laundered into low-classification knowledge |
-| An insider **edits storage or logs** directly | Silent corruption with no trace |
-| Someone **spoofs a trusted feed** | Fake "authoritative" data enters the graph |
-| A RAG endpoint is **scraped in bulk** | Mass data exfiltration |
+| **Top bar** | **Viewing as** switches between users with different clearance. The green **Ledger verified** badge turns red if anyone tampers with the records. **Run full attack demo** plays every attack. |
+| **Centre: the map** | Every circle is a fact and every line is a connection between facts. The dashed ring around everything is the **security perimeter**: new facts fly in as glowing comets, and blocked ones explode on the edge. |
+| **Bottom: the 7 checks** | A glowing dot travels through the 7 checks for every new fact. Green means passed, red means rejected, yellow means sent to the waiting room, purple means waiting for approval. |
+| **Right: control panels** | **Attacks** launches attacks. **Ingest** lets you add your own facts. **Govern** approves or rejects them. **RAG** asks questions like an AI would. **Ledger** shows the logbook. **Trust** shows how reliable each source is. |
 
-SDKG puts a **security pipeline in front of every write** and a **policy-aware retriever in front of every read**, so the graph stays trustworthy and confidential even though it changes all the time.
+### How to read the circles
+
+| What you see | Meaning |
+|---|---|
+| Skull icon | A hacker group |
+| Bug icon | A piece of malware (malicious software) |
+| Warning-triangle icon | A known software weakness (a "CVE") |
+| Server icon | A company computer |
+| Ring colour: green, blue, orange, red | Secrecy level: Public, Internal, Confidential, Secret |
+| How much of the ring is filled | How much the fact is trusted, from 0% to 100% |
+| Purple dots circling | Waiting for approval |
+| Yellow dashed ring | In the waiting room (quarantine) |
+| Faded | Withdrawn or replaced |
+
+### Five things to try
+
+1. **See what an intern sees.** Click **intern** in the top bar. Every secret fact vanishes, because an intern's clearance is Public only.
+2. **Try to hijack the AI.** Open **Ingest**, click the **Prompt injection** preset, then **Sign & submit**. Watch it get blocked at check 3.
+3. **Try to cheat the approval process.** Open **Govern**, choose **bob** under "Acting as" and click **Approve**. He's a contributor, not a curator, so he's denied.
+4. **Ask a question like an AI would.** Open **RAG** and click **Retrieve context**. You'll see exactly what the AI is allowed to read, and nothing more.
+5. **Tamper with the records.** Open **Ledger** and click **Tamper storage**. Alarms go off. Click **Roll back & restore** to fix it.
+
+<p align="center"><img src="docs/screenshots/attack-cinematic.png" alt="An attack being announced in the Command Center" width="100%"></p>
+
+---
+
+<a name="attacks-plain"></a>
+
+## <img src="docs/icons/swords.svg" width="24" height="24" alt=""> The 9 attacks, in plain English
+
+| # | The trick | Real-world equivalent | What stops it |
+|:-:|---|---|---|
+| 1 | **Pretending to be a trusted source** | A forged letter on a bank's letterhead | The digital signature doesn't match, so it's rejected |
+| 2 | **Spreading a rumour through fake accounts** | Fake reviews from bot accounts | Unreliable sources can't vouch for each other, so the rumour stays in the waiting room |
+| 3 | **Contradicting known facts** | Someone "correcting" an official report with false details | It's flagged for human review, and the source that lied loses reputation |
+| 4 | **Hiding commands for the AI** | A note inside a document saying "AI: ignore your rules" | The scanner spots it and blocks it |
+| 5 | **Peeking at secrets** | An intern opening the CEO's private files | Clearance check. To them, secret facts look as if they don't exist. |
+| 6 | **Leaking secrets through a summary** | Retyping a classified memo as a public blog post | An AI that has read secret material can't publish anything at a lower secrecy level |
+| 7 | **Copying everything** | Photocopying the whole archive | Each session has a limit on how many questions it can ask |
+| 8 | **Secretly editing records** | Changing a number in the files, then editing the CCTV footage | Sealed fingerprints and a chained logbook expose the edit, and the original is restored |
+| 9 | **Using a stolen key** | Using a stolen staff badge | The badge (key) is cancelled, so anything signed with it is rejected |
+
+---
+
+<a name="glossary"></a>
+
+## <img src="docs/icons/book-open.svg" width="24" height="24" alt=""> Glossary: the jargon explained
+
+| Term | Plain-English meaning |
+|---|---|
+| **AI assistant / LLM** | A chatbot like ChatGPT or Claude. LLM stands for "large language model". |
+| **AI agent** | An AI that does tasks on its own, such as reading documents and writing new notes. |
+| **RAG** | "Retrieval-augmented generation": the AI looks facts up before answering, instead of relying only on memory. |
+| **Knowledge graph** | A collection of facts stored as a map: things (circles) and how they relate (lines). |
+| **Source** | Where a fact comes from: a news feed, an analyst, a website, another AI. |
+| **Digital signature** | A tamper-proof electronic seal proving who created a piece of data. Impossible to forge without the secret key. |
+| **Key revocation** | Cancelling a source's signing key, like cancelling a stolen credit card. |
+| **Clearance / security label** | How secret something is (Public → Internal → Confidential → Secret), and how secret a person is allowed to see. |
+| **Compartment** | An extra "need-to-know" tag. Even high clearance isn't enough without the right tag (here: `APT`). |
+| **Trust score** | A number from 0 to 1 showing how reliable a fact is, based on its sources' track record. |
+| **Corroboration** | When independent sources say the same thing, which makes a fact more believable. |
+| **Quarantine** | A holding area for suspicious facts, kept away from the AI until a human checks them. |
+| **Curator** | A trusted human reviewer who can approve, reject or withdraw facts. |
+| **Separation of duties** | The rule that you can't approve your own changes. |
+| **Prompt injection** | Hiding instructions inside text so the AI that reads it follows the attacker instead of its rules. |
+| **Sybil attack** | Using many fake identities to make a lie look widely confirmed. |
+| **No write-down** | Once an AI has read secret material, it can't write anything at a lower secrecy level, so it can't leak by summarising. |
+| **Ledger / audit log** | The logbook of every action. Each entry is sealed and chained to the previous one. |
+| **Hash / fingerprint** | A short code calculated from data. Change even one character and the code changes completely, so edits are obvious. |
+| **CVE / CVSS** | A CVE is an ID for a known software weakness. CVSS is its severity score from 0 to 10. |
+
+---
+
+<a name="faq"></a>
+
+## <img src="docs/icons/circle-help.svg" width="24" height="24" alt=""> Frequently asked questions
+
+**Is this real threat intelligence?**
+No. All the data is made up for the demo: the hacker groups, malware names, CVE numbers and computers are fictional.
+
+**Does it connect to a real AI or to the internet?**
+No. Everything runs on your own computer. The app shows exactly what an AI *would* receive, without calling one. The internet is only used to load fonts, and the app works without it.
+
+**Can I break anything?**
+No. Experiment freely. The circular-arrow button in the top-right corner resets everything to a fresh start.
+
+**Who is this for?**
+Students learning about AI security, security teams evaluating risks in AI systems, and developers building RAG applications or AI agents who want a working reference design.
+
+**What are the limitations?**
+It's a working prototype that keeps its data in memory. See [Known limitations and future work](#future-work) for what a production version would add.
+
+---
+
+<a name="deep-dive"></a>
+
+<div align="center">
+
+# <img src="docs/icons/wrench.svg" width="28" height="28" alt=""> Technical deep dive
+
+*For developers and security engineers. Everything below explains how SDKG works in detail.*
+
+</div>
+
+| | Section |
+|:-:|---|
+| 1 | [Developer quick start](#quick-start) |
+| 2 | [Big picture](#big-picture) |
+| 3 | [The secure update pipeline (writes)](#pipeline) |
+| 4 | [Life of a fact](#lifecycle) |
+| 5 | [Access control: RBAC + MLS + ABAC](#access-control) |
+| 6 | [Trust scoring](#trust) |
+| 7 | [Validation and prompt-injection defence](#validation) |
+| 8 | [Approvals and separation of duties](#approvals) |
+| 9 | [Tamper-evident audit ledger](#ledger) |
+| 10 | [Secure retrieval for RAG and agents](#retrieval) |
+| 11 | [Demo domain: cyber threat intelligence](#domain) |
+| 12 | [Attack scenarios (technical)](#attacks) |
+| 13 | [Threat model (STRIDE)](#threat-model) |
+| 14 | [Using the library](#usage) |
+| 15 | [Project layout and modules](#layout) |
+| 16 | [Test suite](#tests) |
+| 17 | [Configuration knobs](#config) |
+| 18 | [Known limitations and future work](#future-work) |
 
 ---
 
 <a name="quick-start"></a>
 
-## <img src="docs/icons/terminal.svg" width="24" height="24" alt=""> Quick start
+## <img src="docs/icons/terminal.svg" width="24" height="24" alt=""> Developer quick start
 
 ```bash
 git clone https://github.com/Prashasthi-18/Secure-Dynamic-Knowledge-Graph.git
 cd Secure-Dynamic-Knowledge-Graph/sdkg
-
 pip install -r requirements.txt
 
-python app/server.py    # interactive Command Center UI (opens your browser)
+python app/server.py    # Command Center web UI (Flask JSON API + canvas front end)
 python demo.py          # terminal demo: normal operation + 9 attack scenarios
 python -m pytest -q     # 20 security tests
 ```
 
-> [!NOTE]
-> Run the commands from inside the `sdkg/` folder, where the `sdkg` Python package lives.
-
-Expected test output:
-
-```text
-....................                                                     [100%]
-20 passed in 1.17s
-```
-
----
-
-<a name="command-center"></a>
-
-## <img src="docs/icons/activity.svg" width="24" height="24" alt=""> Command Center (web UI)
-
-An animated, interactive console that drives the **real** SDKG library. Every action goes through the actual signatures, policy engine, trust model, validator and ledger. The UI only visualises what the pipeline decided.
-
-```bash
-cd sdkg
-pip install -r requirements.txt
-python app/server.py          # opens http://127.0.0.1:5000 (moves to the next free port if 5000 is busy)
-```
-
-<p align="center"><img src="docs/screenshots/command-center.png" alt="SDKG Command Center: live knowledge graph, attack narration and the 7-gate security pipeline" width="100%"></p>
-
-| Area | What you can do |
-|---|---|
-| **Live graph** | Force-directed graph with glowing nodes, trust arcs coloured by security label, particles flowing along edges, orbiting markers for pending facts and hazard rings for quarantined ones. Click any node or edge to inspect its signed provenance. |
-| **Security perimeter** | Every write flies in as a comet. Rejected facts explode on the perimeter; accepted ones land in the graph with a shockwave. |
-| **7-gate pipeline** | A packet travels through Authorize → Authenticate → Validate → Corroborate → Conflicts → Trust → Decide and lights up the gate where it was stopped. |
-| **Attack simulator** | Launch any of the 9 attacks, or run them all as a cinematic demo with narration and a "threat neutralized" stamp after each one. |
-| **Viewing as** | Switch between the observer and each user. Facts the user can't read dissolve away, showing no read-up and need-to-know in action. |
-| **Ingest** | Propose your own nodes and edges, signed by any source, with one-click presets for trusted, poisoned, injected and over-clearance writes. |
-| **Govern** | Approve, reject, accept or discard pending and quarantined facts as any user, and watch separation of duties deny self-approval. |
-| **RAG** | Query as an agent and see the policy-filtered context items, the query budget, the rising high-water mark and the exact prompt the LLM receives. |
-| **Ledger** | A live hash chain of signed blocks. Tamper with storage or rewrite a block to trigger the integrity alarm, then roll back and restore. |
-| **Trust** | Source reputations as Beta(α, β) meters, with key revocation and reinstatement. |
-
-<p align="center"><img src="docs/screenshots/attack-cinematic.png" alt="Attack 04 cinematic title card" width="100%"></p>
-
-> [!TIP]
-> Turn on sound with the speaker button for synthesised blips, alarms and chimes. Press the reset button to restore a fresh world at any time.
+The Command Center ([`sdkg/app/`](sdkg/app/)) is a thin Flask API over the real library. [`server.py`](sdkg/app/server.py) runs each attack against the live `SecureKnowledgeGraph` and returns a per-step trace, including the pipeline stage where every write stopped. The front end ([`app.js`](sdkg/app/static/app.js)) animates those traces with [force-graph](https://github.com/vasturiano/force-graph), which is vendored, so it works offline.
 
 ---
 
@@ -609,7 +812,7 @@ flowchart LR
 
 <a name="attacks"></a>
 
-## <img src="docs/icons/swords.svg" width="24" height="24" alt=""> Attack scenarios (the demo)
+## <img src="docs/icons/swords.svg" width="24" height="24" alt=""> Attack scenarios (technical)
 
 `python demo.py` builds the graph above, then runs **9 attacks**. Every one is stopped:
 
